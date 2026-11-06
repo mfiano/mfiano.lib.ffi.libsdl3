@@ -8,6 +8,16 @@
 
 (in-package #:mfiano.lib.ffi.libsdl3/test)
 
+(c:defcstruct surface
+  (flags :uint32)
+  (format sdl::pixel-format)
+  (w :int)
+  (h :int)
+  (pitch :int)
+  (pixels :pointer)
+  (refcount :int)
+  (reserved :pointer))
+
 (c:defcfun ("SDL_ConvertPixels" %convert-pixels) :bool
   (width :int)
   (height :int)
@@ -17,6 +27,9 @@
   (dst-format sdl::pixel-format)
   (dst :pointer)
   (dst-pitch :int))
+
+(c:defcfun ("SDL_DestroySurface" %destroy-surface) :void
+  (surface :pointer))
 
 (c:defcfun ("SDL_GetWindowFlags" %get-window-flags) sdl::window-flags
   (window :pointer))
@@ -51,11 +64,6 @@
   `(let ((,texture (sdl:make-texture ,renderer ,width ,height :access ,access)))
      (unwind-protect (progn ,@body)
        (sdl:destroy-texture ,texture))))
-
-(defmacro with-surface ((surface form) &body body)
-  `(let ((,surface ,form))
-     (unwind-protect (progn ,@body)
-       (sdl:destroy-surface ,surface))))
 
 (defmacro with-event ((event) &body body)
   `(let ((,event (sdl:make-event)))
@@ -92,12 +100,11 @@
         (pixels (make-u32-array (* width height))))
     (assert (not (c:null-pointer-p surface)))
     (unwind-protect
-         (c:with-foreign-slots ((format (source sdl::pixels) (pitch sdl::pitch)) surface
-                                (:struct sdl::surface))
+         (c:with-foreign-slots ((format (source pixels) pitch) surface (:struct surface))
            (c:with-pointer-to-vector-data (pointer pixels)
              (assert (%convert-pixels width height format source pitch
                                       :rgba8888 pointer (* width 4)))))
-      (sdl:destroy-surface surface))
+      (%destroy-surface surface))
     pixels))
 
 (defun every-pixel? (pixels value)

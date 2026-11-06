@@ -115,10 +115,7 @@ Typical pairs:
 * `make-window` / `destroy-window`
 * `make-renderer` / `destroy-renderer`
 * `make-texture` / `destroy-texture`
-* `make-surface` / `destroy-surface`
 * `make-event` / `destroy-event`
-
-`make-surface/from-array` copies the array into memory SDL owns, so the array can be collected afterwards.
 
 For temporary rectangles there are helpers like:
 
@@ -132,9 +129,11 @@ This library focuses mainly on the pieces most games/tools need immediately:
 * windows + display info
 * renderers + textures
 * events + keyboard/mouse helpers
-* surfaces/pixel formats (where needed for textures)
+* pixel formats
 * the GPU API
 * a handful of small utilities (timing, paths, CPU count)
+
+Surfaces, and the custom cursors made from them, are not supported. SDL requires a surface to be freed before the pixel data it borrows, which this library cannot ensure for a Lisp array, and the renderer needs no surfaces: `update-texture/from-array` uploads a Lisp array into a texture.
 
 If you need something SDL3 exposes but this wrapper doesn't, adding it is usually straightforward: follow the pattern in `src/common.lisp` (`define-sdl-function`) and mirror the style used in `src/functions.lisp` and `src/wrappers.lisp`.
 

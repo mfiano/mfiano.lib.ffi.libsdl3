@@ -793,12 +793,6 @@
   (bshift :uint8)
   (ashift :uint8))
 
-(c:defbitfield (surface-flags :uint32)
-  (:preallocated #x00000001)
-  (:lock-needed #x00000002)
-  (:locked #x00000004)
-  (:simd-aligned #x00000008))
-
 (c:defcenum scale-mode
   (:invalid -1)
   :nearest
@@ -810,18 +804,6 @@
   :horizontal
   :vertical
   (:horizontal-and-vertical 3))
-
-(c:defcstruct surface
-  (flags surface-flags)
-  (format pixel-format)
-  (w :int)
-  (h :int)
-  (pitch :int)
-  (pixels :pointer)
-  (refcount :int)
-  (reserved :pointer))
-
-(c:defcstruct cursor)
 
 (c:defbitfield (mouse-button-flags :uint32)
   (:lmask #x00000001)

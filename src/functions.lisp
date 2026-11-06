@@ -4,38 +4,12 @@
 (c:defcfun ("SDL_ClearError" %clear-error) :bool)
 (c:defcfun ("SDL_free" %free) :void (pointer :pointer))
 
-(define-sdl-function %create-color-cursor ()
-  (:name "SDL_CreateColorCursor"
-   :type (:pointer (:struct cursor))
-   :check #'valid-pointer?)
-  (surface (:pointer (:struct surface)))
-  (hot-x :int)
-  (hot-y :int))
-
 (define-sdl-function %create-renderer ()
   (:name "SDL_CreateRenderer"
    :type (:pointer (:struct renderer))
    :check #'valid-pointer?)
   (window (:pointer (:struct window)))
   (name :string))
-
-(define-sdl-function %create-surface ()
-  (:name "SDL_CreateSurface"
-   :type (:pointer (:struct surface))
-   :check #'valid-pointer?)
-  (width :int)
-  (height :int)
-  (format pixel-format))
-
-(define-sdl-function %create-surface-from ()
-  (:name "SDL_CreateSurfaceFrom"
-   :type (:pointer (:struct surface))
-   :check #'valid-pointer?)
-  (width :int)
-  (height :int)
-  (format pixel-format)
-  (pixels :pointer)
-  (pitch :int))
 
 (define-sdl-function %create-texture ()
   (:name "SDL_CreateTexture"
@@ -46,13 +20,6 @@
   (access texture-access)
   (w :int)
   (h :int))
-
-(define-sdl-function %create-texture-from-surface ()
-  (:name "SDL_CreateTextureFromSurface"
-   :type (:pointer (:struct texture))
-   :check #'valid-pointer?)
-  (renderer (:pointer (:struct renderer)))
-  (surface (:pointer (:struct surface))))
 
 (define-sdl-function %create-window ()
   (:name "SDL_CreateWindow"
@@ -67,17 +34,9 @@
   (:name "SDL_CursorVisible"
    :type :bool))
 
-(define-sdl-function %destroy-cursor ()
-  (:name "SDL_DestroyCursor")
-  (cursor (:pointer (:struct cursor))))
-
 (define-sdl-function %destroy-renderer ()
   (:name "SDL_DestroyRenderer")
   (renderer (:pointer (:struct renderer))))
-
-(define-sdl-function %destroy-surface ()
-  (:name "SDL_DestroySurface")
-  (surface (:pointer (:struct surface))))
 
 (define-sdl-function %destroy-texture ()
   (:name "SDL_DestroyTexture")
@@ -86,12 +45,6 @@
 (define-sdl-function %destroy-window ()
   (:name "SDL_DestroyWindow")
   (window (:pointer (:struct window))))
-
-(define-sdl-function %duplicate-surface ()
-  (:name "SDL_DuplicateSurface"
-   :type (:pointer (:struct surface))
-   :check #'valid-pointer?)
-  (surface (:pointer (:struct surface))))
 
 (define-sdl-function %get-base-path ()
   (:name "SDL_GetBasePath"
@@ -568,12 +521,6 @@
    :type :bool
    :check #'identity)
   (window (:pointer (:struct window))))
-
-(define-sdl-function %set-cursor ()
-  (:name "SDL_SetCursor"
-   :type :bool
-   :check #'identity)
-  (cursor (:pointer (:struct cursor))))
 
 (define-sdl-function %set-default-texture-scale-mode ()
   (:name "SDL_SetDefaultTextureScaleMode"

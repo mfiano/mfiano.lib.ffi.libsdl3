@@ -8,11 +8,6 @@
 (defun cursor-visible? ()
   (%cursor-visible))
 
-(defun destroy-cursor (cursor)
-  (assert (valid-pointer? cursor))
-  (%destroy-cursor cursor)
-  (values))
-
 (defun destroy-event (event)
   (assert (valid-pointer? event))
   (c:foreign-free event)
@@ -36,11 +31,6 @@
 (defun destroy-renderer (renderer)
   (assert (valid-pointer? renderer))
   (%destroy-renderer renderer)
-  (values))
-
-(defun destroy-surface (surface)
-  (assert (valid-pointer? surface))
-  (%destroy-surface surface)
   (values))
 
 (defun destroy-texture (texture)
@@ -447,12 +437,6 @@
       (values (c:mem-ref pixels :pointer)
               (c:mem-ref pitch :int)))))
 
-(defun make-cursor/from-surface (surface &key (hot-x 0) (hot-y 0))
-  (assert (valid-pointer? surface))
-  (check-type hot-x i32!-)
-  (check-type hot-y i32!-)
-  (%create-color-cursor surface hot-x hot-y))
-
 (defun make-event ()
   (c:foreign-alloc :uint8 :count (c:foreign-type-size '(:union event)) :initial-element 0))
 
@@ -479,32 +463,12 @@
   (check-type name (or string null))
   (%create-renderer window name))
 
-(defun make-surface (width height)
-  (check-type width i32+)
-  (check-type height i32+)
-  (%create-surface width height :rgba8888))
-
-(defun make-surface/from-array (width height data)
-  (check-type width i32+)
-  (check-type height i32+)
-  (check-type data (u32-array (*)))
-  (assert (>= (length data) (* width height)))
-  (c:with-pointer-to-vector-data (pixels data)
-    (let ((surface (%create-surface-from width height :rgba8888 pixels (* width 4))))
-      (unwind-protect (%duplicate-surface surface)
-        (%destroy-surface surface)))))
-
 (defun make-texture (renderer width height &key (access :target))
   (assert (valid-pointer? renderer))
   (check-type width i32+)
   (check-type height i32+)
   (check-type access #.(member-keys 'texture-access))
   (%create-texture renderer :rgba8888 access width height))
-
-(defun make-texture/from-surface (renderer surface)
-  (assert (valid-pointer? renderer))
-  (assert (valid-pointer? surface))
-  (%create-texture-from-surface renderer surface))
 
 (defun make-window (width height &key (title "") flags)
   (check-type width u16)
@@ -656,11 +620,6 @@
 (defun restore-window (window)
   (assert (valid-pointer? window))
   (%restore-window window)
-  (values))
-
-(defun set-cursor (cursor)
-  (assert (valid-pointer? cursor))
-  (%set-cursor cursor)
   (values))
 
 (defun set-default-texture-scale-mode (renderer scale-mode)
