@@ -8,6 +8,7 @@
   (#:mfiano.lib.base
    #:cffi
    #:trivial-features)
+  :in-order-to ((test-op (test-op #:mfiano.lib.ffi.libsdl3/test)))
   :pathname "src"
   :serial t
   :components
@@ -18,3 +19,20 @@
    (:file "functions")
    (:file "gpu-functions")
    (:file "wrappers")))
+
+(asdf:defsystem #:mfiano.lib.ffi.libsdl3/test
+  :description "Unit tests for mfiano.lib.ffi.libsdl3"
+  :author "Michael Fiano <michael.fiano@gmail.com>"
+  :license "MIT"
+  :homepage "https://github.com/mfiano/mfiano.lib.ffi.libsdl3"
+  :encoding :utf-8
+  :depends-on
+  (#:1am
+   #:cffi
+   #:mfiano.lib.ffi.libsdl3)
+  :perform (test-op (o c) (symbol-call '#:1am '#:run))
+  :pathname "test"
+  :serial t
+  :components
+  ((:file "helpers")
+   (:file "test")))
