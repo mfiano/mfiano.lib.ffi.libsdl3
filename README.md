@@ -1,22 +1,17 @@
 # mfiano.lib.ffi.libsdl3
 
-CFFI bindings plus thin, Lisp-friendly wrappers for **SDL3 (Simple DirectMedia Layer 3.x)**.
+CFFI bindings for SDL3 (Simple DirectMedia Layer 3.x), with thin Common Lisp wrappers over them.
 
-The design goal is "no drama": keep the API close to SDL3, but make it comfortable from Common Lisp: keywords for enums/flags, predictable wrapper names, and errors signaled as Lisp conditions.
+The wrappers keep the shape and naming of SDL3's API. They take keywords where SDL takes enums or flags, and they signal `sdl-error` when SDL reports a failure.
 
 ## What's in here
 
-- CFFI bindings for the parts of SDL3 the wrappers need, plus all of `SDL_gpu.h` and the GPU functions of `SDL_render.h`.
-- Wrapper functions that:
-  - accept keyword flags (often `&rest`),
-  - convert common things to the right C shapes,
-  - and signal `sdl-error` when SDL reports failure.
-
-It's intentionally not a huge framework layer.
+- CFFI bindings for the parts of SDL3 the wrappers need, plus `SDL_gpu.h` and the GPU functions of `SDL_render.h`.
+- Wrapper functions, which make up the exported API.
 
 ## Requirements
 
-- **SDL 3.4 or later** installed on your system. Loading the library signals an error on an older SDL.
+- SDL 3.4 or later installed on the system. Loading the library signals an error on an older SDL.
   - Arch: `pacman -S sdl3`
   - Ubuntu/Debian: `apt install libsdl3-0`
   - macOS (Homebrew): `brew install sdl3`
@@ -41,9 +36,9 @@ Package:
   (:use #:cl #:mfiano.lib.ffi.libsdl3))
 ```
 
-## Quickstart (window + event loop)
+## Example
 
-This is deliberately "SDL-shaped" code.
+This opens a window and clears it every frame until the window is closed.
 
 ```lisp
 (in-package #:my-demo)
@@ -72,71 +67,58 @@ This is deliberately "SDL-shaped" code.
 
 ## Conventions
 
-A few patterns show up everywhere:
-
-* **Keyword enums/flags.** Where SDL expects a bitmask or enum, the wrappers accept keywords.
-
-  * Example: `(init :video :events)`
-  * Example: `(make-window 800 450 :flags '(:hidden :resizable))`
-  * Example: `(render-texture renderer texture :flip :horizontal)`
-
-* **Wrappers are the public API.** The bindings are generated with a macro (`define-sdl-function`) and have `%`-prefixed entrypoints, which stay internal. The exported functions are the ergonomic wrappers.
-
-* **Naming follows SDL3.** Each wrapper is named after the SDL3 function it calls, in Lisp style: `SDL_RenderTexture` is `render-texture`, `SDL_GetRenderClipRect` is `get-render-clip-rect`, `SDL_GetDisplayForWindow` is `get-display-for-window`. Constructors are `make-*` and destructors are `destroy-*`, and boolean queries end in `?`, such as `render-clip-enabled?`.
-
-* **Display IDs, not indices.** Display functions take the `SDL_DisplayID` that `get-display-for-window` returns.
-
-* **Floats where SDL3 uses floats.** Rendering takes `frect`s and float coordinates, and mouse events report float positions.
+- Where SDL expects a bitmask or enum, the wrappers accept keywords:
+  - `(init :video :events)`
+  - `(make-window 800 450 :flags '(:hidden :resizable))`
+  - `(render-texture renderer texture :flip :horizontal)`
+- The exported wrappers are the public API. The bindings are generated with the `define-sdl-function` macro, and their `%`-prefixed names stay internal.
+- Each wrapper is named after the SDL3 function it calls, in Lisp style: `SDL_RenderTexture` is `render-texture` and `SDL_GetDisplayForWindow` is `get-display-for-window`. Constructors are `make-*` and destructors are `destroy-*`. Boolean queries end in `?`, such as `render-clip-enabled?`.
+- Display functions take the `SDL_DisplayID` that `get-display-for-window` returns.
+- Rendering takes `frect`s and float coordinates, and mouse events report float positions, as in SDL3.
 
 ## GPU
 
-All of `SDL_gpu.h` is bound except `SDL_SetGPUBlendConstants`, which takes a struct by value and would need `cffi-libffi`. The GPU functions of `SDL_render.h` are bound too: `SDL_CreateGPURenderer`, `SDL_GetGPURendererDevice`, and the GPU render state functions for custom shaders. These are raw bindings without wrappers, so they are internal `%`-prefixed symbols of the package: `(mfiano.lib.ffi.libsdl3::%create-gpu-device ...)`.
+All of `SDL_gpu.h` is bound except `SDL_SetGPUBlendConstants`, which takes a struct by value and would need `cffi-libffi`. The GPU functions of `SDL_render.h` are bound too, including the GPU render state functions for custom shaders. These bindings have no wrappers, so they are internal `%`-prefixed symbols of the package: `(mfiano.lib.ffi.libsdl3::%create-gpu-device ...)`.
 
 ## Error handling
 
-Most SDL failures are converted into a Lisp condition:
-
-* Condition type: `sdl-error`
-* Message: taken from `SDL_GetError`
-
-So you can do the usual:
+Most bindings check SDL's result and signal `sdl-error` on failure. The condition reports the message from `SDL_GetError`.
 
 ```lisp
 (handler-case (init :video)
   (sdl-error (c)
-    (format *error-output* "SDL exploded: ~a~%" c)))
+    (format *error-output* "~a~%" c)))
 ```
 
 ## Memory management
 
-SDL objects created through this library are **foreign pointers**. This library does not try to be clever with GC finalizers: you are expected to call the matching destroy function.
-
-Typical pairs:
+SDL objects created through this library are foreign pointers, and the library sets no finalizers on them. Free each one with the matching destroy function:
 
 * `make-window` / `destroy-window`
 * `make-renderer` / `destroy-renderer`
 * `make-texture` / `destroy-texture`
 * `make-event` / `destroy-event`
 
-For temporary rectangles there are helpers like:
+`with-rect` and `with-frect` allocate a temporary rectangle and free it when the body exits.
 
-* `with-rect` and `with-frect` (allocated and freed around the body)
+## Coverage
 
-## What SDL3 areas are covered?
+The library covers these areas of SDL3:
 
-This library focuses mainly on the pieces most games/tools need immediately:
-
-* init/quit, error strings
-* windows + display info
-* renderers + textures
-* events + keyboard/mouse helpers
+* init/quit and error strings
+* windows and display info
+* renderers and textures
+* OpenGL contexts
+* events, with keyboard and mouse helpers
 * pixel formats
 * the GPU API
-* a handful of small utilities (timing, paths, CPU count)
+* timing
+* base and preference paths
+* the logical CPU core count
 
-Surfaces, and the custom cursors made from them, are not supported. SDL requires a surface to be freed before the pixel data it borrows, which this library cannot ensure for a Lisp array, and the renderer needs no surfaces: `update-texture/from-array` uploads a Lisp array into a texture.
+Surfaces are not supported, and neither are the custom cursors made from them. SDL requires a surface to be freed before the pixel data it borrows, which this library cannot ensure for a Lisp array. The renderer needs no surfaces, since `update-texture/from-array` uploads a Lisp array into a texture.
 
-If you need something SDL3 exposes but this wrapper doesn't, adding it is usually straightforward: follow the pattern in `src/common.lisp` (`define-sdl-function`) and mirror the style used in `src/functions.lisp` and `src/wrappers.lisp`.
+To add an SDL3 function this library lacks, bind it in `src/functions.lisp` with `define-sdl-function` from `src/common.lisp`, and wrap it in `src/wrappers.lisp`.
 
 ## Tests
 
