@@ -100,7 +100,8 @@
         (pixels (make-u32-array (* width height))))
     (assert (not (c:null-pointer-p surface)))
     (unwind-protect
-         (c:with-foreign-slots ((format (source pixels) pitch) surface (:struct surface))
+         (c:with-foreign-slots ((format w h (source pixels) pitch) surface (:struct surface))
+           (assert (and (= w width) (= h height)))
            (c:with-pointer-to-vector-data (pointer pixels)
              (assert (%convert-pixels width height format source pitch
                                       :rgba8888 pointer (* width 4)))))
