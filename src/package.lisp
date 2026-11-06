@@ -2,7 +2,8 @@
 
 (define-package #:mfiano.lib.ffi.libsdl3
   (:local-nicknames
-   (#:c #:cffi))
+   (#:c #:cffi)
+   (#:sv #:static-vectors))
   (:use #:mfiano.lib.base.util)
   (:export
    #:copy-rect

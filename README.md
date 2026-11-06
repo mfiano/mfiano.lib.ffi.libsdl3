@@ -22,6 +22,7 @@ It's intentionally not a huge framework layer.
   - macOS (Homebrew): `brew install sdl3`
 - Common Lisp libraries:
   - `cffi`
+  - `static-vectors`
   - `trivial-features`
   - `mfiano.lib.base`
 

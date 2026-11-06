@@ -844,10 +844,10 @@
                 dest-height h)))
       (assert (<= (+ x dest-width) width))
       (assert (<= (+ y dest-height) height))
-      (c:with-pointer-to-vector-data (pixels data)
+      (sv:with-static-vector (pixels (length data) :element-type 'u32 :initial-contents data)
         (%update-texture texture
                          (or rect (c:null-pointer))
-                         (c:inc-pointer pixels (+ (* x 4) (* y pitch)))
+                         (sv:static-vector-pointer pixels :offset (+ (* x 4) (* y pitch)))
                          pitch))
       (values))))
 

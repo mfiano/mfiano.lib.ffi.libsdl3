@@ -3,7 +3,8 @@
 (define-package #:mfiano.lib.ffi.libsdl3/test
   (:local-nicknames
    (#:c #:cffi)
-   (#:sdl #:mfiano.lib.ffi.libsdl3))
+   (#:sdl #:mfiano.lib.ffi.libsdl3)
+   (#:sv #:static-vectors))
   (:use #:mfiano.lib.base.util #:1am))
 
 (in-package #:mfiano.lib.ffi.libsdl3/test)
@@ -102,9 +103,10 @@
     (unwind-protect
          (c:with-foreign-slots ((format w h (source pixels) pitch) surface (:struct surface))
            (assert (and (= w width) (= h height)))
-           (c:with-pointer-to-vector-data (pointer pixels)
+           (sv:with-static-vector (buffer (length pixels) :element-type 'u32 :initial-element 0)
              (assert (%convert-pixels width height format source pitch
-                                      :rgba8888 pointer (* width 4)))))
+                                      :rgba8888 (sv:static-vector-pointer buffer) (* width 4)))
+             (replace pixels buffer)))
       (%destroy-surface surface))
     pixels))
 
