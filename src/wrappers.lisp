@@ -588,6 +588,12 @@
   (%render-present renderer)
   (values))
 
+(defun axis-flip (flip-x flip-y)
+  (cond ((and flip-x flip-y) :horizontal-and-vertical)
+        (flip-x :horizontal)
+        (flip-y :vertical)
+        (t :none)))
+
 (defun render-texture (renderer texture
                        &key
                          source-rect
@@ -595,7 +601,8 @@
                          (angle 0d0)
                          (center-x nil)
                          (center-y nil)
-                         (flip :none))
+                         flip-x
+                         flip-y)
   (assert (valid-pointer? renderer))
   (assert (valid-pointer? texture))
   (check-type source-rect (or object null))
@@ -603,7 +610,6 @@
   (check-type angle real)
   (check-type center-x (or real null))
   (check-type center-y (or real null))
-  (check-type flip #.(member-keys 'flip-mode))
   (let* ((source-rect (or source-rect (c:null-pointer)))
          (dest-rect (or dest-rect (c:null-pointer)))
          (angle (f64 angle))
@@ -612,7 +618,8 @@
                      (make-object 'fpoint 'x (f32 center-x) 'y (f32 center-y))
                      (c:null-pointer))))
     (unwind-protect
-         (%render-texture-rotated renderer texture source-rect dest-rect angle center flip)
+         (%render-texture-rotated renderer texture source-rect dest-rect angle center
+                                  (axis-flip flip-x flip-y))
       (when center?
         (free-object center)))
     (values)))

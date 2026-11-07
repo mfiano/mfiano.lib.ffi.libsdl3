@@ -70,7 +70,8 @@ This opens a window and clears it every frame until the window is closed.
 - Where SDL expects a bitmask or enum, the wrappers accept keywords:
   - `(init :video :events)`
   - `(make-window 800 450 :flags '(:hidden :resizable))`
-  - `(render-texture renderer texture :flip :horizontal)`
+  - `(set-texture-blend-mode texture :add)`
+- `render-texture` flips with the generalized booleans `:flip-x` and `:flip-y`, so `(render-texture renderer texture :flip-x t)` mirrors the texture horizontally.
 - The exported wrappers are the public API. The bindings are generated with the `define-sdl-function` macro, and their `%`-prefixed names stay internal.
 - Each wrapper is named after the SDL3 function it calls, in Lisp style: `SDL_RenderTexture` is `render-texture` and `SDL_GetDisplayForWindow` is `get-display-for-window`. Constructors are `make-*` and destructors are `destroy-*`. Boolean queries end in `?`, such as `render-clip-enabled?`.
 - Display functions take the `SDL_DisplayID` that `get-display-for-window` returns.

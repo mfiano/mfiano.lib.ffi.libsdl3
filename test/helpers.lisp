@@ -93,6 +93,13 @@
         (setf (aref result (+ (* row width) column))
               (aref pixels (+ (* row width) (- width column 1))))))))
 
+(defun flip-rows (pixels width height)
+  (let ((result (make-u32-array (* width height))))
+    (dotimes (row height result)
+      (replace result pixels :start1 (* row width)
+                             :start2 (* (- height row 1) width)
+                             :end2 (* (- height row) width)))))
+
 (defun rotate-half-turn (pixels)
   (reverse pixels))
 
