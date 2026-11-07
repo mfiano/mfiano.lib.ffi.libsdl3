@@ -461,7 +461,7 @@
 (defun make-renderer (window &key name)
   (assert (valid-pointer? window))
   (check-type name (or string null))
-  (%create-renderer window name))
+  (%create-renderer window (or name (c:null-pointer))))
 
 (defun make-texture (renderer width height &key (access :target))
   (assert (valid-pointer? renderer))

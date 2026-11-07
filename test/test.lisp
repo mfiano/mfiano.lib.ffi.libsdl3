@@ -359,6 +359,13 @@
     (is (string= (sdl:get-renderer-name renderer) "software"))
     (is (integerp (sdl:get-max-texture-size renderer)))))
 
+(test renderer.make.default-driver
+  (with-window (window)
+    (sdl::%set-hint "SDL_RENDER_DRIVER" "software")
+    (let ((renderer (sdl:make-renderer window)))
+      (unwind-protect (is (string= (sdl:get-renderer-name renderer) "software"))
+        (sdl:destroy-renderer renderer)))))
+
 (test renderer.output-size
   (with-renderer (window renderer :width 6 :height 3)
     (is (equal (multiple-value-list (sdl:get-current-render-output-size renderer)) '(6 3)))
